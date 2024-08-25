@@ -1,19 +1,21 @@
 <template>
   <div class="user-container">
-    <el-form  :model="tableData.form" label-width="80px" :inline="true">
+    <el-form  :model="tableData" label-width="80px" :inline="true">
       <el-form-item label="用户名称">
-        <el-input v-model="name" placeholder="请输入用户名称" />
+        <el-input v-model="tableData.content" clearable placeholder="请输入用户名称" @keyup.enter.native="getUserList" />
       </el-form-item>
       <el-form-item label="创建时间">
         <el-date-picker
           class = "time-selection"
-          v-model="minCreateTime"
+          v-model="tableData.minCreateTime"
+          value-format="yyyy-MM-dd HH:mm:ss"
           type="datetime"
           placeholder="起始时间"
         />
         <el-date-picker
           class = "time-selection"
-          v-model="maxCreateTime"
+          v-model="tableData.maxCreateTime"
+          value-format="yyyy-MM-dd HH:mm:ss"
           type="datetime"
           placeholder="截止时间"
         />
@@ -32,7 +34,7 @@
     </div>
     <!-- table会按照tableData这个数组的长度来生成对应的行数，按照el-table-column来生成多少列 -->
     <el-table
-      :data="tableData.list"
+      :data="tableData.userList"
       @selection-change="val => tableData.selection = val"
       @sort-change="handleSortChange"
       >
@@ -68,7 +70,7 @@
         <template slot-scope="scope">
             <el-button type="text" icon="el-icon-edit" size="mini" @click="handleEdit(scope.row)">编辑</el-button>
             <!-- 这里进行的是单个用户删除 -->
-            <el-button type="text" icon="el-icon-delete" size="mini" style="color:red" @click="handleDelete(scope.row.id)">删除</el-button>
+            <el-button type="text" icon="el-icon-delete" size="mini" style="color:red" @click="handleDelete([scope.row.id])">删除</el-button>
         </template>
       </el-table-column>
 
@@ -96,7 +98,7 @@
     <!-- 用户编辑/创建窗口 -->
     <el-dialog
     class="user-edit-dialog" 
-    :title="userEditForm.id ? '用户编辑' : '新增用户'"
+    :title="userEditForm['id']?'编辑用户': '新增用户'"
     :visible.sync="userEditDialogVisable"
     width="50%"
     top="8vh"
@@ -112,7 +114,7 @@
         status-icon
         :model="userEditForm"
         label-width="80px"
-        :rules="userEditForm.id ? userUpdateRules : userCreateRules"
+        :rules="userEditForm['id'] ? userUpdateRules : userCreateRules"
         >
             <el-form-item label="用户名" prop="userName">
                 <el-input v-model="userEditForm.userName" />
@@ -134,9 +136,6 @@
             </el-form-item>
             <el-form-item label="地址" prop="address">
                 <el-input v-model="userEditForm.address" />
-            </el-form-item>
-            <el-form-item label="简介" prop="introduction">
-                <el-input v-model="userEditForm.introduction" />
             </el-form-item>
             <el-form-item label="电话" prop="phone">
                 <el-input v-model="userEditForm.phone" />
@@ -169,22 +168,26 @@
 
 </template>
 <script>
-
+import md5 from 'js-md5'
 import * as UserApi from '@/api/user'
 import {getRoles} from '@/api/role'
+const copyObject = obj => JSON.parse(JSON.stringify(obj))
 
 export default {
   name: 'User',
   data() {
     return {
         tableData: {
-            form: {
-                name: '',
-                minCreateTime: '',
-                maxCreateTime: '',
-            },
-            list:
-            [
+            content: '',
+            minCreateTime: '',
+            maxCreateTime: '',
+            selection: [],
+            pageNum: 1,
+            pageSize: 10,
+            total:0,
+            orderby: '',
+            orderMethod: 'desc',
+            userList:[
                 {
                     id: 1,
                     userName: 'supoMaker',
@@ -194,11 +197,8 @@ export default {
                     status: true
                 }
             ],
-            selection: '',
-            pageNum: 1,
-            pageSize: 10,
-            total: 24
         },
+            
         userEditForm: {
             id: '',
             userName: '',
@@ -207,7 +207,6 @@ export default {
             email: '',
             gender: '',
             address: '',
-            introduction: '',
             phone: '',
             roleIds: [],
             avatarUploadData:{
@@ -225,12 +224,12 @@ export default {
         userCreateRules: {
             userName: [{ required:true, trigger: 'blur', validator: this.userNameValidator }],
             password: [{ required:true, trigger: 'change', validator: this.passwordValidator }],
-            roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
+            // roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
         },
         userUpdateRules: {
             userName: [{ required:true, trigger: 'blur', validator: this.userNameValidator }],
             password: [{ required:true, validator: this.passwordValidator }],
-            roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
+            // roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
         },
         // 当前编辑的行
         currentEditRow: {
@@ -244,21 +243,29 @@ export default {
   },
   methods: {
     handleCreateUser() {
-        this.userEditForm.id="用户编辑"
+        for (const key in this.userEditForm) {
+            this.userEditForm[key] = ''
+        }
         this.userEditDialogVisable=true;
     },
     // 批量删除用户
     handleBatchDelete() {
         // 将tableData.selection中的id提取出来，传递给handleDelete就可以
-        
+        if (this.tableData.selection.length === 0) {
+        this.$message.warning('请选择要删除的用户')
+        return
+      }
+      const userIds = this.tableData.selection.map(item => item.id)
+      this.handleDelete(userIds)
     },
     handleImportUser() {
 
     },
     getUserList() {
+
         UserApi.getUsers(this.tableData).then(res => {
-            this.tableData.list = res.data.data.content
-            this.tableData.total = res.data.data.totalElements
+            this.tableData.userList = res.data.data.userList
+            this.tableData.total = res.data.data.total
             // 更新头像
             // this.$nextTick(() => {
             //     this.tableData.list.forEach(row => {
@@ -268,15 +275,16 @@ export default {
         })
     },
     // 切换用户状态，激活或失效
-    handleSwitch() {
-
+    handleSwitch(row) {
+        UserApi.changeUserStatus(row.id, row.status).then(() => {
+        this.$message.success('操作成功')
+      })
     },
     handleEdit(row) {
         this.currentEditRow = row
         for (const key in this.userEditForm) {
             this.userEditForm[key] = row[key]
         }
-        this.userEditForm["id"]="编辑用户"
         this.userEditDialogVisable=true;
     },
     handleDelete(userIds) {
@@ -287,16 +295,17 @@ export default {
             type: 'warning'
         }).then(() => {
             //对接删除用户的接口
+            UserApi.deleteUser(userIds).then(() => {
+                this.$message.success('删除成功')
+                this.getUserList()
+            }).catch(() => {
+                this.$message.error('删除失败')
+            })
          })
     },
-    userUpdateRules() {
-        
-    },
-    userCreateRules() {
 
-    },
     resetQuery() {
-        this.tableData.userName = ''
+        this.tableData.content = ''
         this.tableData.minCreateTime = ''
         this.tableData.maxCreateTime = ''
     },
@@ -310,11 +319,12 @@ export default {
         if(!value) {
             callback(new Error('请输入用户名'))
         } else if(this.userEditForm.id && value === this.currentEditRow.userName) {
-            callback
+            callback()
         } else {
             // checkUserName(value).then(res => {
-            //     callback(res.data.data ? new Error('用户名已存在'): undefined)
+            //     callback(res.data.data ? new Error('用户名已存在') : undefined)
             // })
+            callback()
         }
     },
     // 密码验证函数
@@ -336,10 +346,44 @@ export default {
         }
     },
     addOrUpdateUser() {
-        this.$refs.userEditForm.validate(valid => {
-            if (valid) {
-                // 如果验证通过就调用添加或更新用户的接口
-            }
+        // this.$refs.userEditForm.validate(valid => {
+        //     if (valid) {
+        //         // 如果验证通过就调用添加或更新用户的接口
+        //         const params = copyObject(this.userEditForm)
+        //         if(!params.password) {
+        //             delete params.password
+        //         } else {
+        //             params.password = md5(params.password)
+        //         }
+        //         const tempApi = this.userEditForm["id"]=="新增用户"?UserApi.addUser:UserApi.updateUser
+        //         tempApi(params).then(res => {
+        //             this.$message.success('操作成功')
+        //             // if (!this.userEditForm["id"]) {
+        //             //     this.userEditForm["id"] = res.data.data.id
+        //             // }
+        //             this.getUserList()
+        //         }).finally(() => {
+        //             this.userEditDialogVisable = false;
+        //         })
+        //     }
+        // })
+  
+        // 如果验证通过就调用添加或更新用户的接口
+        const params = copyObject(this.userEditForm)
+        if(!params.password) {
+            delete params.password
+        } else {
+            params.password = md5(params.password)
+        }
+        const tempApi = this.userEditForm["id"]?UserApi.updateUser:UserApi.addUser
+        tempApi(params).then(res => {
+            this.getUserList()
+            this.$message.success('操作成功')
+        }).catch(()=> {
+            this.$message.error('操作失败')
+        })
+        .finally(() => {
+            this.userEditDialogVisable = false;
         })
     },
     getAllRoles() {

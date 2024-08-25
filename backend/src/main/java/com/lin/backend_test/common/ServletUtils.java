@@ -49,8 +49,6 @@ public class ServletUtils {
      */
     public static Integer getUserId() {
         TokenData userData = getUserInfo();
-        System.out.println("333333333333");
-        System.out.println(userData);
         return userData == null ? null : userData.userId;
     }
 

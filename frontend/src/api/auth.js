@@ -24,10 +24,11 @@ export function logout() {
     return request.post('user-api/auth/logout')
 }
 
-/*
-检查用户名是否存在
-*/
+/**
+ * 检查用户名是否存在
+ * @param {string} userName
+ */
 export function checkUserName(userName) {
-    const url = 'user-api/auth/user-name/exists?userName='+ userName
+    const url = 'user-api/auth/user-name/exists?userName=' + userName
     return request.post(url)
-}
+  }

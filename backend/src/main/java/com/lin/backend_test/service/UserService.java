@@ -12,6 +12,14 @@ public interface UserService extends IService<User> {
 
     boolean existsByUserName(String userName);
 
-    public List<User> getUserList();
+    public List<User> getUserList(String content, String minCreateTime, String maxCreateTime, Integer pageNum, Integer pageSize, String orderMethod, String orderby);
+
+    public Integer getUserTotalNum(String content, String minCreateTime, String maxCreateTime);
+
+    public boolean addUser(User user);
+
+    public boolean updateUser(User user);
+
+    public boolean deleteUserByIds(List<Integer> userId);
 
 }

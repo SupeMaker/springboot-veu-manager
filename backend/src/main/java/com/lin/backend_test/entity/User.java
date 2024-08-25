@@ -67,8 +67,11 @@ public class User {
     @TableField(exist = false)
     private List<Integer> permissionList;
 
+
     public static  class Status {
-        public static final Integer DELETE = 0;
+        public static final Integer UNABLE = 0;
         public static final Integer ENABLE = 1;
+
+        public static final Integer DELETE = 2;
     }
 }
