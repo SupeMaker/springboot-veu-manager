@@ -1,7 +1,9 @@
 package com.lin.backend_test.service.Impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lin.backend_test.entity.Role;
+import com.lin.backend_test.entity.User;
 import com.lin.backend_test.entity.UserRole;
 import com.lin.backend_test.mapper.RoleMapper;
 import com.lin.backend_test.mapper.UserRoleMapper;
@@ -9,6 +11,7 @@ import com.lin.backend_test.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> implements UserRoleService {
@@ -57,5 +60,18 @@ public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> i
     @Override
     public List<Map<String, Object>> getUserIdsByRoleIds(List<Integer> roleIds) {
         return null;
+    }
+
+    @Override
+    public List<Integer> getRoleIdsByUserId(Integer userId) {
+        if (null == userId) return null;
+        QueryWrapper<UserRole> userRoleQueryWrapper = new QueryWrapper<>();
+        userRoleQueryWrapper.eq("user_id", userId);
+        return userRoleMapper.selectList(userRoleQueryWrapper).stream().map(UserRole::getRoleId).collect(Collectors.toList());
+    }
+
+    public void setUserRole(User user){
+        List<Integer> roleIdList = getRoleIdsByUserId(user.getId());
+        user.setRoleList(roleIdList);
     }
 }

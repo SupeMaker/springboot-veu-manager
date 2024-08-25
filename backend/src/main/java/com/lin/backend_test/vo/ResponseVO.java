@@ -27,7 +27,11 @@ public class ResponseVO<T> {
         return new ResponseVO<>(StatusCode.ERROR.getCode(), "error", null);
     }
 
-    public static <T>ResponseVO success(T data) {
-        return new ResponseVO(StatusCode.SUCCESS.getCode(), "success", data);
+    public static <T>ResponseVO success(StatusCode statusCode, T data) {
+        return new ResponseVO(statusCode.getCode(), "success", data);
+    }
+
+    public static <T> ResponseVO error( StatusCode statusCode) {
+        return new ResponseVO(statusCode.getCode(), statusCode.getDesc(), null);
     }
 }

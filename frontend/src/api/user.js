@@ -6,7 +6,7 @@ import request from '@/utils/request'
  * 获取用户自身信息
  */
 export function getInfo() {
-  return request.get('user-api/users/me')
+  return request.get('user-api/user/userInfo')
 }
 
 export function getUsers(data) {

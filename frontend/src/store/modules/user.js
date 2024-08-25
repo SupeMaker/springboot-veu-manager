@@ -38,8 +38,8 @@ const actions = {
       // 这里调用 src/api/user.js/login 函数，上面修改成了调用src/api/auth.js/login的方法
       login(userInfo).then(response => {
         // login({username:username.trim(), password:password.trim()}).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
+        // const { data } = response
+        commit('SET_TOKEN',getToken())
         // setToken(data.token)
         resolve()
       }).catch(error => {

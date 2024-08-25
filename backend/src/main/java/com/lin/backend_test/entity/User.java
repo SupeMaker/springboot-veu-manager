@@ -17,6 +17,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(description = "学生信息")
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     private static final long serialVersionUID = 1L;
 
@@ -59,9 +61,14 @@ public class User {
 
     // 非数据库字段
     @TableField(exist = false)
-    private List<String> roleList;
+    private List<Integer> roleList;
 
     // 非数据库字段
     @TableField(exist = false)
-    private List<String> permissionList;
+    private List<Integer> permissionList;
+
+    public static  class Status {
+        public static final Integer DELETE = 0;
+        public static final Integer ENABLE = 1;
+    }
 }

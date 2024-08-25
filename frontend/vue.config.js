@@ -17,10 +17,10 @@ const name = defaultSettings.title || 'vue Element Admin' // page title
 const port = process.env.port || process.env.npm_config_port || 9527 // dev port
 const gatewayUrl = 'http://localhost:8082/api'
 const devUrlMap = {
-  'user-api' : 'http://localhost:8090/v1'
+  'user-api' : 'http://localhost:8090/manager'
 }
 const prodUrlMap = {
-  'user-api': gatewayUrl + '/user/v1'
+  'user-api': gatewayUrl + '/user/manager'
 }
 const devMode = process.env.NODE_ENV !== 'production'
 

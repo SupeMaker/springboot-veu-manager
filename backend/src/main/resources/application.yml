@@ -12,3 +12,7 @@ spring:
     url: jdbc:mysql://localhost:3306/spring?userUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: 111111
+
+#  jackson:
+#    # 日期格式化，也就是返回前端的日期，也可以在JacksonConfig中配置
+#    date-format: yyyy-MM-dd HH:mm:ss

@@ -13,4 +13,5 @@ public interface UserService extends IService<User> {
     boolean existsByUserName(String userName);
 
     public List<User> getUserList();
+
 }

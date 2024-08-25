@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 @Configuration
 public class JacksonConfig {
@@ -27,6 +28,7 @@ public class JacksonConfig {
                 jsonGenerator.writeString("");
             }
         });
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
         return objectMapper;
     }
 }
