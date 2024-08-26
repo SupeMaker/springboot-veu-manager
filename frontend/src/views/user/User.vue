@@ -2,7 +2,7 @@
   <div class="user-container">
     <el-form  :model="tableData" label-width="80px" :inline="true">
       <el-form-item label="用户名称">
-        <el-input v-model="tableData.content" clearable placeholder="请输入用户名称" @keyup.enter.native="getUserList" />
+        <el-input v-model="tableData.content" clearable placeholder="请输入用户名称" @keyup.enter.native="getPreUserList" />
       </el-form-item>
       <el-form-item label="创建时间">
         <el-date-picker
@@ -21,7 +21,7 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-seach" size="mini" @click="getUserList">搜索</el-button>
+        <el-button type="primary" icon="el-icon-seach" size="mini" @click="getPreUserList">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
@@ -140,8 +140,8 @@
             <el-form-item label="电话" prop="phone">
                 <el-input v-model="userEditForm.phone" />
             </el-form-item>
-            <el-form-item label="角色" prop="roleIds">
-                <el-select v-model="userEditForm.roleIds" multiple placeholder="请选择角色">
+            <el-form-item label="角色" prop="roleList">
+                <el-select v-model="userEditForm.roleList" multiple placeholder="请选择角色">
                     <el-option v-for="role in allRoles" :key="role.id" :label="role.name" :value="role.id" />
                 </el-select>
             </el-form-item>
@@ -205,10 +205,11 @@ export default {
             trueName: '',
             password: '',
             email: '',
+            status: 1,
             gender: '',
             address: '',
             phone: '',
-            roleIds: [],
+            roleList: [],
             avatarUploadData:{
                 url: '',
                 raw: ''
@@ -224,12 +225,12 @@ export default {
         userCreateRules: {
             userName: [{ required:true, trigger: 'blur', validator: this.userNameValidator }],
             password: [{ required:true, trigger: 'change', validator: this.passwordValidator }],
-            // roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
+            // roleList: [{ required:true, trigger: 'change', validator: this.roleValidator }],
         },
         userUpdateRules: {
             userName: [{ required:true, trigger: 'blur', validator: this.userNameValidator }],
             password: [{ required:true, validator: this.passwordValidator }],
-            // roleIds: [{ required:true, trigger: 'change', validator: this.roleValidator }],
+            // roleList: [{ required:true, trigger: 'change', validator: this.roleValidator }],
         },
         // 当前编辑的行
         currentEditRow: {
@@ -261,8 +262,11 @@ export default {
     handleImportUser() {
 
     },
+    getPreUserList() {
+        this.tableData.pageNum=1;
+        this.getUserList();
+    },
     getUserList() {
-
         UserApi.getUsers(this.tableData).then(res => {
             this.tableData.userList = res.data.data.userList
             this.tableData.total = res.data.data.total
@@ -282,9 +286,11 @@ export default {
     },
     handleEdit(row) {
         this.currentEditRow = row
+        console.log("before:", this.currentEditRow)
         for (const key in this.userEditForm) {
             this.userEditForm[key] = row[key]
         }
+        console.log("after:", this.currentEditRow)
         this.userEditDialogVisable=true;
     },
     handleDelete(userIds) {
@@ -308,6 +314,7 @@ export default {
         this.tableData.content = ''
         this.tableData.minCreateTime = ''
         this.tableData.maxCreateTime = ''
+        this.getPreUserList();
     },
     // 点击表格列，进行排序
     handleSortChange() {

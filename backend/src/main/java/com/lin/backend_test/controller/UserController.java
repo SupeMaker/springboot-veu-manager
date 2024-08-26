@@ -196,7 +196,7 @@ public class UserController {
             String gender = DataUtils.formatString(String.valueOf(jsonNode.get("gender")));
             String address = DataUtils.formatString(String.valueOf(jsonNode.get("address")));
             String phone = DataUtils.formatString(String.valueOf(jsonNode.get("phone")));
-            String roleIdStr = DataUtils.formatString(String.valueOf(jsonNode.get("roleIds")));
+            String roleIdStr = DataUtils.formatString(String.valueOf(jsonNode.get("roleList")));
             List<Integer> roleIdslist = new ArrayList<>();
             if (!"[]".equals(roleIdStr) && null!=(roleIdStr)) {
                 roleIdslist=Arrays.stream(roleIdStr.split(","))
@@ -241,7 +241,6 @@ public class UserController {
     public ResponseVO updateUser(@RequestBody String userJson){
         Date date = new Date();
         ObjectMapper objectMapper = new ObjectMapper();
-        UpdateWrapper<User> queryWrapper = new UpdateWrapper<User>();
         User user;
         try {
             JsonNode jsonNode = objectMapper.readTree(userJson);
@@ -251,12 +250,12 @@ public class UserController {
             String password = DataUtils.formatString(String.valueOf(jsonNode.get("password")));
             String email = DataUtils.formatString(String.valueOf(jsonNode.get("email")));
             String gender = DataUtils.formatString(String.valueOf(jsonNode.get("gender")));
+            Integer status = Integer.parseInt(String.valueOf(jsonNode.get("status")));
             String address = DataUtils.formatString(String.valueOf(jsonNode.get("address")));
             String phone = DataUtils.formatString(String.valueOf(jsonNode.get("phone")));
-            String roleIdStr = DataUtils.formatString(String.valueOf(jsonNode.get("roleIds")));
+            String roleIdStr = DataUtils.formatString(String.valueOf(jsonNode.get("roleList")));
             List<Integer> roleIdslist = new ArrayList<>();
             if (!"[]".equals(roleIdStr) && null!=(roleIdStr)) {
-                System.out.println(roleIdStr);
                 roleIdslist=Arrays.stream(roleIdStr.split(","))
                         .map(Integer::parseInt)
                         .collect(Collectors.toList());
@@ -267,7 +266,6 @@ public class UserController {
                 gender="女";
             }
             user = userService.getById(userId);
-            queryWrapper.eq("id", userId);
             user.setUserName(userName)
                     .setTrueName(trueName)
                     .setPassword(password)
@@ -275,13 +273,13 @@ public class UserController {
                     .setGender(gender)
                     .setAddress(address)
                     .setPhone(phone)
-                    .setStatus(User.Status.ENABLE)
+                    .setStatus(status)
                     .setRoleList(roleIdslist)
                     .setUpdateTime(date);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        if(userService.update(user, queryWrapper)) {
+        if(userService.updateById(user)) {
             return ResponseVO.success();
         }
         return ResponseVO.error();
